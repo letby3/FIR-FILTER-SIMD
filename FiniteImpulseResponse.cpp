@@ -3,63 +3,61 @@
 #include <cmath>
 #include <fstream>
 #include <conio.h>
+#include <vector>
+#include <complex>
+#include <time.h>
+#include "FIR_FILTER.h"
 
 using namespace std;
 
 ofstream out;
-long float answ[2000];
 
-void FIR_Filter(long float x[], long float y[], const int size_n);
+typedef complex<double> base;
+
+long float* FIR_Filter(long float x[], long float y[], const int size_n);
+
+void fft(vector<base>& a, bool invert);
+
 
 int main(){
+    srand(time(NULL));
     out.open("graph.txt");
-    long float N = 1000;
-    long float X_MAX = 10;
-    long float *x = new long float[2000];
-    long float *y = new long float[2000];
-    for (long float i = -X_MAX; i < X_MAX; i += (2 * X_MAX / N)) {
+    long float N = 128;
+    long float fs = 10;
+    long float X_MAX = N / fs - 1/fs;
+    long float *x = new long float[1001];
+    long float *y = new long float[1001];
+    int it = 0;
+    vector<base> a, b;
+
+    for (long float i = 0, j = 0; i <= X_MAX;i += 1.0/fs, j++) {
         out << i << endl;
     }
-    for (long float i = -X_MAX; i < X_MAX; i += (2 * X_MAX / N)) {
-        out << 100*sin(i) << endl;
+    for (long float i = 0; i <= X_MAX; i += 1.0 / fs, it++) {
+        long float X = ((long float)(abs(rand() % 12)) / 100.0 - 0.01) * cos(2 * M_PI * 0.5 * i);
+        out << X << endl;
+        x[it] = X;
+        a.push_back(X);
     }
 
-    FIR_Filter(x, y, 2*N);
+    fft(a, 0);
+    y = FIR_Filter(x, y, N);
+    
+    for (int i = 0; i < N;i++) {
+        out << y[i] << endl;
+        b.push_back(y[i]);
+    }
+
+    fft(b, 0);
+
+    for (complex<double> i : a) {
+        out << i.real() << endl;
+    }
+
+    for (complex<double> i : b) {
+        out << i.real() << endl;
+    }
 
     system("PAUSE");
     return 0;
-}
-
-void FIR_Filter(long float x[], long float y[], int size_n) {
-    const int N = 20;
-    long float fc = (50.0 + 20.0)/(4000.0);  //50
-    long float h[N] = { 0 };
-    long float a = 0.5; // Параметр окна Гаусса
-
-    long float hp = 2 * M_PI * fc;
-    long float w = exp(-(2.0f * pow(N, 2.0f) / 4.0f) / (a * (float)N * a * (float)N));
-    long float norm = 0;
-    h[0] = hp * w;
-    norm = h[0];
-
-    for (int i = 1; i < N; i++) {
-        hp = sin(2 * M_PI * fc * i) / (M_PI * i);
-        w = exp(-(2.0f * (i - pow(N, 2.0f) / 4.0f)) / (a * (float)N * a * (float)N));
-        h[i] = hp * w;
-        norm += h[i];
-        //cout << hp << ' ' << w << endl;
-    }
-
-    for (int i = 0; i < N; i++)
-        h[i] /= norm;
-
-    for (int i = 0; i < size_n; i++) {
-        y[i] = 0;
-        for (int j = 0; j < N - 1; j++) {
-            if (i - j >= 0) {
-                y[i] += h[j] * x[i - j];
-            }
-        }
-        out << y[i] << '\n';
-    }
 }
