@@ -40,20 +40,20 @@ void fft(vector<base>& a, bool invert) {
             a[i] /= n;
 }
 
-long float* FIR_Filter(long float x[], long float y[], int size_n) {
-    const int N = 20;
-    long float fc = (1 + 0.4) / (20);  //50(50.0 + 20.0)/(4000.0)
-    long float h[N] = { 0 };
+void FIR_Filter(long float x[], long float y[], int size_n) {
+    const int N = 20; // Порядок фильтра
+    long float fc = (0.4 + 0.6) / (20);  // fc = (fp + fst)/(2*fs) := (полоса пропускания + п. заграждения)/(2 * частота дискретизации)
+    long float h[N] = { 0 }; //Импульсная характеристика
     long float a = 0.5; // Параметр окна Гаусса
 
-    long float hp = 2 * M_PI * fc;
-    long float w = exp(-(2.0f * pow(N, 2.0f) / 4.0f) / (a * (float)N * a * (float)N));
-    long float norm = 0;
+    long float hp = 2 * M_PI * fc; // hp импульсная характеристика фильтра
+    long float w = exp(-(2.0f * pow(N, 2.0f) / 4.0f) / (a * (float)N * a * (float)N)); // w вес фильтра
+    long float norm = 0; // Для нормирования импульсной характеристики
     h[0] = hp * w;
     norm = h[0];
 
     for (int i = 1; i < N; i++) {
-        hp = sinl(2 * M_PI * fc * i) / (M_PI * i);
+        hp = sinl(2 * M_PI * fc * i) / (M_PI * i); //ФНЧ
         w = exp((2.0f * (i - pow(N, 2.0f) / 4.0f)) / (a * (float)N * a * (float)N)); // весовая функция для Гауссова окна
         h[i] = hp * w;
         norm += h[i];
@@ -75,14 +75,12 @@ long float* FIR_Filter(long float x[], long float y[], int size_n) {
     for (int i = 0; i < N; i++)
         h[i] /= norm;
 
-    for (int i = 0; i < size_n; i++) {
+    for (int i = 0; i < size_n; i++) { //FIR filter
         y[i] = 0.0;
         for (int j = 0; j < N - 1; j++) {
             if (i - j >= 0) {
                 y[i] += h[j] * x[i - j];
             }
         }
-        //out << y[i] << '\n';
     }
-    return y;
 }
