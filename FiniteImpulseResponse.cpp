@@ -9,7 +9,7 @@ using namespace std;
 
 int main(){
 
-    start_second_test("graph1.txt");
+    start_second_test("graph1.txt", "stat_out.txt");
 
     system("PAUSE");
     return 0;

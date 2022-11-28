@@ -22,7 +22,7 @@ void fft(vector<base>& a, bool invert);
 
 void start_first_test(string fileName);
 
-void start_second_test(string fileName);
+void start_second_test(string fileName, string stat_fileName);
 
 float rm_maxx_end_fl[9][8] = { {0, 0, 0, 0, 0, 0, 0, 0},
                                {1, 0, 0, 0, 0, 0, 0, 0},
@@ -92,10 +92,11 @@ public:
     }
 };
 
-void start_second_test(string fileName) {
-    
+void start_second_test(string fileName, string stat_fileName) {
+    ofstream stat_out;
     ofstream out;
     out.open(fileName);
+    stat_out.open(stat_fileName);
     srand(time(NULL));
     float N = 128; //Точек отчеста входного сигнала 
     float fs = 10; //Частота дискретизации (в сек)
@@ -123,21 +124,35 @@ void start_second_test(string fileName) {
         out << X << endl;
     }
 
-    muTimer mt;
-    FIR_Filter(x, y, N, 64);
-    cout << mt.stop().duration() << " mks\n";
+    for (int lenght_filter = 8; lenght_filter <= 2048; lenght_filter *= 2) {
+        unsigned long long Fir_Filter_evg = 0,
+                           Fir_Filter_SIMD_evg = 0;
+        
+        FIR_Filter(x, y, N, lenght_filter);
+        
+        for (int i = 0; i < N; i++) {
+            out << y[i] << endl; // Вывод выходного сигнала 
+            y[i] = 0;
+        }
 
-    for (int i = 0; i < N; i++) {
-        out << y[i] << endl; // Вывод выходного сигнала 
-        y[i] = 0;
-    }
+        FIR_Filter_SIMD(x_reverse, y, N, lenght_filter);
 
-    muTimer mt1;
-    FIR_Filter_SIMD(x_reverse, y, N, 64);
-    cout << mt1.stop().duration() << " mks\n";
-
-    for (int i = 0; i < N; i++) {
-        out << y[i] << endl; // Вывод выходного сигнала 
+        for (int i = 0; i < N; i++) {
+            out << y[i] << endl; // Вывод выходного сигнала 
+        }
+        cout << "HEre" << endl;
+        for (int num_test = 0; num_test < 10000;num_test++) {
+            muTimer Fir_Filter;
+            FIR_Filter(x, y, N, lenght_filter);
+            Fir_Filter_evg += Fir_Filter.stop().duration();
+            
+            muTimer Fir_Filter_SIMD;
+            FIR_Filter_SIMD(x_reverse, y, N, lenght_filter);
+            Fir_Filter_SIMD_evg +=  Fir_Filter_SIMD.stop().duration();
+            
+        }
+        stat_out << (float)Fir_Filter_evg / 10000.0 << ' ' << (float)Fir_Filter_SIMD_evg / 10000.0 << ' '
+                 << lenght_filter <<endl;
     }
 }
 
