@@ -130,6 +130,7 @@ void start_second_test(string fileName, string stat_fileName) {
         
         FIR_Filter(x, y, N, lenght_filter);
         
+        //Вывод сигналов от разных функций для сверки
         for (int i = 0; i < N; i++) {
             out << y[i] << endl; // Вывод выходного сигнала 
             y[i] = 0;
@@ -140,7 +141,8 @@ void start_second_test(string fileName, string stat_fileName) {
         for (int i = 0; i < N; i++) {
             out << y[i] << endl; // Вывод выходного сигнала 
         }
-        cout << "HEre" << endl;
+        
+        // проводим 1000 тестов для одного сигнала и замеряем время работы функции
         for (int num_test = 0; num_test < 10000;num_test++) {
             muTimer Fir_Filter;
             FIR_Filter(x, y, N, lenght_filter);
@@ -230,18 +232,19 @@ void fft(vector<base>& a, bool invert) {
 }
 
 void FIR_Filter_SIMD(float x[], float y[], int size_n, int inp_n) {
-    const int N_fl = inp_n;
-    const int N_fl8 = N_fl / 8;
-    float* hp = new float[N_fl];
-    float* w = new float[N_fl];
-    float fc_fl = (0.4 + 0.6) / 20.0;
-    float a = 0.5;
-    __m256 N = _mm256_set1_ps((float)N_fl);
-    __m256 fc = _mm256_set1_ps(fc_fl);
-    __m256* h = new __m256[N_fl8];
-    __m256* x_simd = new __m256[N_fl8];
-    //__m256 a = _mm256_set1_ps(0.5);
-    for (int i = 0; i < N_fl; i++) {
+    const int N_fl = inp_n; //Длина фильтра
+    const int N_fl8 = N_fl / 8; //Длина фильтра /8
+    float* hp = new float[N_fl]; // Импульсная характеристика
+    float* w = new float[N_fl]; // Вес фильтра
+    float fc_fl = (0.4 + 0.6) / 20.0; // аналогично 
+    float a = 0.5; // Параметр окна Гаусса
+    
+    
+    __m256* h = new __m256[N_fl8]; // Импульсная характеристика обр сигнала
+    __m256* x_simd = new __m256[N_fl8]; //x_simd - часть входного сигнала в обратном порядке
+
+    
+    for (int i = 0; i < N_fl; i++) { // Расчёт веса и импульсной окна
         if (i == 0) {
             hp[i] = 2.0 * M_PI * fc_fl;
             w[i] = exp(-(2.0f * pow((float)N_fl, 2.0f) / 4.0f) / (a * (float)N_fl * a * (float)N_fl));
@@ -251,41 +254,48 @@ void FIR_Filter_SIMD(float x[], float y[], int size_n, int inp_n) {
             w[i] = exp((2.0f * (i - pow((float)N_fl, 2.0f) / 4.0f)) / (a * (float)N_fl * a * (float)N_fl)); // весовая функция для Гауссова окна
         }
     }
-    //__m256 Test = _mm256_mul_ps(_mm256_load_ps(&hp[8]), _mm256_load_ps(&w[8]));
+    
     __m256 Test = _mm256_setzero_ps();
     for (int i = 0, j = 0; i < N_fl; i += 8, j++) {
-        h[j] = _mm256_mul_ps( _mm256_load_ps(&hp[i]), _mm256_load_ps(&w[i]));
-        Test = _mm256_add_ps(Test, h[j]);
+        h[j] = _mm256_mul_ps( _mm256_load_ps(&hp[i]), _mm256_load_ps(&w[i])); // Импульсная выходного. Расчёт
+        Test = _mm256_add_ps(Test, h[j]); // Сумма импульсного 
     }
     float sum = 0;
     float* norm = (float*) &Test;
+
     for (int i = 0; i < 8; i++) {
-        sum += norm[i];
+        sum += norm[i]; // Сумма для нормирования
     }
     __m256 div = _mm256_set1_ps(sum);
     for (int i = 0; i < N_fl/8; i++) {
-        h[i] = _mm256_div_ps(h[i], div);
+        h[i] = _mm256_div_ps(h[i], div); // Нормирование
     }
 
-    __m256 sm = _mm256_setzero_ps();
+    __m256 sm = _mm256_setzero_ps(); // Сумма h[j] * x[i - j] для y[i]
     for (int i = 0; i < size_n; i ++) {
+
         sm = _mm256_setzero_ps();
         y[i] = 0;
+        // -> вырезаем x[i] ... x[i + N_fl] (Для изначального сигнала) для реверсного x_r[size_n - i - 1] ... x_r[min(size_n - i - 1 + N_fl, size_n)] 
         for (int j = 0; j < N_fl/8; j++) {
             x_simd[j] = _mm256_setzero_ps();
             x_simd[j] = _mm256_load_ps(&x[size_n - i - 1 + j * 8]);
         }
         x_simd[min(i/8, N_fl/8 - 1)] = _mm256_mul_ps(x_simd[min(i / 8, N_fl / 8 - 1)], rm_mass_end[i%8 + 1]);
+        //Домнажаем, чтобы избавиться от лишних значений в конце массива (Зануляем)
+        // <-
         
+        // -> FIR формула
         for (int j = 0; j <= min(i / 8, N_fl / 8 - 1); j++) {
             sm = _mm256_add_ps(sm, _mm256_mul_ps(h[j], x_simd[j]));
         }
         float* Sm = ((float*)&sm);
         float y_sm = Sm[0] + Sm[1] + Sm[2] + Sm[3] +
                      Sm[4] + Sm[5] + Sm[6] + Sm[7];
-        //cout << y_sm << endl;
         y[i] = y_sm;
+        // <-
     }
+
     
 }
 
@@ -306,7 +316,6 @@ void FIR_Filter(float x[], float y[], int size_n, int inp_n) {
         w = exp((2.0f * ((float)i - pow(N, 2.0f) / 4.0f)) / (a * (float)N * a * (float)N)); // весовая функция для Гауссова окна
         h[i] = hp * w;
         norm += h[i];
-        //cout << hp << ' ' << w << endl;
     }
     /*
     norm = 0;
@@ -322,14 +331,13 @@ void FIR_Filter(float x[], float y[], int size_n, int inp_n) {
     }
     */
     for (int i = 0; i < N; i++) {
-        h[i] /= norm;
+        h[i] /= norm; // Нормируем
     }
 
     for (int i = 0; i < size_n; i++) { //FIR filter
         y[i] = 0.0;
         for (int j = 0; j < N - 1; j++) {
             if (i - j >= 0) {
-                //cout << i << ' ' << j << endl;
                 y[i] += h[j] * x[i - j];
             }
         }
