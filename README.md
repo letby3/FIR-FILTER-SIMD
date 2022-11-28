@@ -20,14 +20,15 @@ All Problems u can find in "задачи.docs"
 Файлы: "FiniteImpulseResponse.cpp", "FIR_FILTER.h", "GraphForFIR.py", "stat_out.txt", "graph1.txt"
 ![Figure_1](https://user-images.githubusercontent.com/22713938/204394177-108faf75-d434-439f-9eff-4dbd81b5fc6e.png)
 
-1.1. Графики с lenght_filter = 8, 16, 32, 64
+  1.1. Графики с lenght_filter = 8, 16, 32, 64
 На графиках с маленькой длиной фильтра наблюдается большой разброс 
 (ссылаюсь на разные типы переменных (баг не пофиксил пока))
 С большей длинной фильтра такого не наблюдается
+
 ![Figure_2](https://user-images.githubusercontent.com/22713938/204394439-5b42e661-57a7-416e-ad4e-2bf501c51cc7.png)
 
-1.2. Графики с lenght_filter = 128, 256, 512, 1024
+  1.2. Графики с lenght_filter = 128, 256, 512, 1024
 
 ![Figure_4](https://user-images.githubusercontent.com/22713938/204394456-f5be31e6-f135-4118-8317-59fd14b076c1.png)
 
-1.3 Графики синий-FIR_Filter, оранжевый-FIR_Filter_SIMD
+  1.3 Графики синий-FIR_Filter, оранжевый-FIR_Filter_SIMD
