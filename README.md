@@ -17,6 +17,10 @@ All Problems u can find in "задачи.docs"
 8. https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html
 
 Решение:
+Hardware: i5-10300H
+OS: Ubuntu 18.04
+Compiler: MK VS C++ 14, Python 3.10.8
+(Графики для удобства строил в Python)
 Файлы: "FiniteImpulseResponse.cpp", "FIR_FILTER.h", "GraphForFIR.py", "stat_out.txt", "graph1.txt"
 ![Figure_1](https://user-images.githubusercontent.com/22713938/204394177-108faf75-d434-439f-9eff-4dbd81b5fc6e.png)
 
