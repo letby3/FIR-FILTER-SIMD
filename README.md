@@ -17,6 +17,7 @@ All Problems u can find in "задачи.docs"
 8. https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html
 
 Решение:
+
 Hardware: i5-10300H
 
 OS: Ubuntu 18.04
