@@ -1,4 +1,4 @@
-# OOOSTC_ProblemsForApprentice
+# OOOSTC_Problem1
 All Problems u can find in "задачи.docs"
 
 2.2	Написать реализацию КИХ фильтра, оптимизированную с использованием 
