@@ -86,11 +86,11 @@ private:
 
 public:
 
-    typedef complex<double> base;
+    typedef complex<float> base;
 
     struct dataset {
         float N = 128; //Точек отчеста входного сигнала 
-        float fs = 10; //Частота дискретизации (в сек)
+        float fs = 1000; //Частота дискретизации (в сек)
         float X_MAX = N / fs; //Длина сигнала в сек
         float* x; //Входной сигнал
         float* x_reverse;
@@ -123,14 +123,14 @@ public:
         main_config.y = y;
     }
 
-    void MakeNoise(float amp_min, float amp_max) {
+    void MakeNoise(float amp_min, float amp_max, int sin_on_off) {
         float* X_MAX = &main_config.X_MAX;
         float* fs = &main_config.fs;
         int it = main_config.it, it1 = main_config.it1;
         srand(time(NULL));
         for (float i = 0; i <= *X_MAX; i += 1.0 / *fs, it++, it1--) {
             //float X = ((float)(abs(rand() % 12)) / amp_min - amp_max) * cos(2 * M_PI * 0.5 * i); // Rand-ый sin-ый входной сигнал
-            float X = (((float)rand() / (float)RAND_MAX) * (amp_max - amp_min) + amp_min) * cos(2 * M_PI * 0.5 * i);
+            float X = (((float)rand() / (float)RAND_MAX) * (amp_max - amp_min) + amp_min) * cos(2 * M_PI * 0.5 * i * sin_on_off);
             main_config.x[it] = X;
             main_config.x_reverse[it1] = X;         
         }
@@ -182,112 +182,8 @@ public:
         delete python_xy_param_char;
     }
     
-    void start_second_test(string fileName, string stat_fileName) {
-        out.open(fileName);
-        stat_out.open(stat_fileName);
-        srand(time(NULL));
-        float N = main_config.N; //Точек отчеста входного сигнала 
-        float fs = main_config.fs; //Частота дискретизации (в сек)
-        float X_MAX = main_config.X_MAX; //Длина сигнала в сек
-        float* x = main_config.x; //Входной сигнал
-        float* x_reverse = main_config.x;
-        float* y = main_config.y; //Выходной сигнал
-        int it = main_config.it, it1 = main_config.it1;
 
-        __m256 N_simd;
-        __m256 fs_simd;
-        __m256 x_simd[126];
-        __m256 y_simd[126];
-
-        for (long float i = 0, j = 0; i <= X_MAX - 1.0/fs; i += 1.0 / fs, j++) {
-            out << i << endl; //Вывод координаты ВХ сигнала в сек
-        }
-
-        for (float i = 0; i <= X_MAX; i += 1.0 / fs, it++, it1--) {
-            float X = ((float)(abs(rand() % 12)) / 100.0 - 0.01) * cos(2 * M_PI * 0.5 * i); // Rand-ый sin-ый входной сигнал
-            x[it] = X;
-            x_reverse[it1] = X;
-            out << X << endl;           
-        }
-        for (int lenght_filter = 8; lenght_filter <= 2048; lenght_filter *= 2) {
-            unsigned long long Fir_Filter_evg = 0,
-                               Fir_Filter_SIMD_evg = 0;
-        
-            //FIR_Filter(x, y, N, lenght_filter);
-        
-            //Вывод сигналов от разных функций для сверки
-            for (int i = 0; i < N; i++) {
-                out << y[i] << endl; // Вывод выходного сигнала 
-                y[i] = 0;
-            }
-
-            FIR_Filter_SIMD(x_reverse, y, N, lenght_filter);
-
-            for (int i = 0; i < N; i++) {
-                out << y[i] << endl; // Вывод выходного сигнала 
-            }
-        
-            // проводим 1000 тестов для одного сигнала и замеряем время работы функции
-            for (int num_test = 0; num_test < 10000;num_test++) {
-                muTimer Fir_Filter;
-                //FIR_Filter(x, y, N, lenght_filter);
-                Fir_Filter_evg += Fir_Filter.stop().duration();
-            
-                muTimer Fir_Filter_SIMD;
-                FIR_Filter_SIMD(x_reverse, y, N, lenght_filter);
-                Fir_Filter_SIMD_evg +=  Fir_Filter_SIMD.stop().duration();
-            
-            }
-            stat_out << (float)Fir_Filter_evg / 10000.0 << ' ' << (float)Fir_Filter_SIMD_evg / 10000.0 << ' '
-                     << lenght_filter <<endl;
-            cout << (float)Fir_Filter_evg / 10000.0 << ' ' << (float)Fir_Filter_SIMD_evg / 10000.0 << ' '
-                << lenght_filter << endl;
-        }
-    }
-
-    void start_first_test(string fileName) {       
-        out.open(fileName);
-        srand(time(NULL));
-        float N = 128; //Точек отчеста входного сигнала 
-        float fs = 10; //Частота дискретизации (в сек)
-        float X_MAX = N / fs - 1 / fs; //Длина сигнала в сек
-        float* x = new float[1001]; //Входной сигнал
-        float* y = new float[1001]; //Выходной сигнал
-        int it = 0; //верный друг, верный счётчик
-        vector<base> a, b; // ВХОД и ВЫХОД Фурье
-
-        for (float i = 0, j = 0; i <= X_MAX; i += 1.0 / fs, j++) {
-            out << i << endl; //Вывод координаты ВХ сигнала в сек
-        }
-
-        for (float i = 0; i <= X_MAX; i += 1.0 / fs, it++) {
-            float X = ((long float)(abs(rand() % 12)) / 100.0 - 0.01) * cos(2 * M_PI * 0.5 * i); // Rand-ый sin-ый входной сигнал
-            out << X << endl;
-            x[it] = X;
-            a.push_back(X);
-        }
-
-        fft(a, 0); //Фурье входного сигнала (Complex)
-
-        //FIR_Filter(x, y, N, 16); // КИХ фильтр нижних частот
-
-        for (int i = 0; i < N; i++) {
-            out << y[i] << endl; // Вывод выходного сигнала 
-            b.push_back(y[i]);
-        }
-
-        fft(b, 0); //Фурье выходного сигнала (Complex)
-
-        for (complex<double> i : a) {
-            out << i.real() << endl; //Вывод входного Фурье
-        }
-
-        for (complex<double> i : b) {
-            out << i.real() << endl; //Вывод выходного Фурье
-        }
-    }
-
-    void fft(vector<base>& a, bool invert) {
+    void FFT(vector<base>& a, bool invert) {       
         int n = (int)a.size();
 
         for (int i = 1, j = 0; i < n; ++i) {
@@ -315,6 +211,30 @@ public:
         if (invert)
             for (int i = 0; i < n; ++i)
                 a[i] /= n;
+    }
+
+    void OutFrequencyResponseGraph(string py_path, string GraphForFIR_path) {
+        string python_frr_param = py_path + " " + GraphForFIR_path + " graph4";
+        char* python_frr_param_char;
+        vector<base> x, y;
+        for (int i = 0; i < main_config.N;i++) {
+            x.push_back(main_config.x[i]);
+            y.push_back(main_config.y[i]);
+        }
+        FFT(x, 0);
+        FFT(y, 0);
+        for (int i = 2; i < x.size(); i++) {            
+            python_frr_param = python_frr_param + " " +  to_string(sqrt(x[i].real() * x[i].real() + x[i].imag() * x[i].imag()));
+        }
+        for (int i = 2; i < x.size(); i++) {
+            python_frr_param = python_frr_param + " " + to_string(sqrt(y[i].real() * y[i].real() + y[i].imag() * y[i].imag()));
+        }        
+        python_frr_param_char = new char[python_frr_param.size()];
+        for (int i = 0; i < python_frr_param.size(); i++) {
+            python_frr_param_char[i] = python_frr_param[i];
+        }
+        system(python_frr_param_char);
+        delete(python_frr_param_char);
     }
 
     void FIR_Filter_SIMD(float x[], float y[], int size_n, int inp_n) {
@@ -385,12 +305,12 @@ public:
     
     }
 
-    void FIR_Filter(int inp_n) {
+    void FIR_Filter(int inp_n, float fp, float fst) {
         float *x = main_config.x;
         float* y = main_config.y; 
         int size_n = main_config.N;        
         const int N = inp_n; // Порядок фильтра
-        float fc = (0.4 + 0.6) / (20);  // fc = (fp + fst)/(2*fs) := (полоса пропускания + п. заграждения)/(2 * частота дискретизации)
+        float fc = (fp + fst) / (2 * main_config.fs);  // fc = (fp + fst)/(2*fs) := (полоса пропускания + п. заграждения)/(2 * частота дискретизации)
         float* h = new float[N]; //Импульсная характеристика
         float a = 0.5; // Параметр окна Гаусса
 

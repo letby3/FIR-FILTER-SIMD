@@ -49,7 +49,22 @@ elif (sys.argv[1] == 'graph3'):
     plt.plot(x, data2)
     plt.grid()
     plt.show()
-
+elif (sys.argv[1] == 'graph4'):
+    data1 = []
+    data2 = []
+    x = []
+    print('ITS PYTHON')
+    it = 2 * (128/1000)
+    for i in range(2, int(len(sys.argv)/2)):
+        data1.append(float(sys.argv[i]))
+        x.append(it)
+        it = it + (128/1000)
+    for i in range(int(len(sys.argv)/2 + 1), len(sys.argv) - 1):
+        data2.append(float(sys.argv[i]))
+    plt.plot(x, data1)
+    plt.plot(x, data2)
+    plt.grid()
+    plt.show()
 
 '''
 a = 128
