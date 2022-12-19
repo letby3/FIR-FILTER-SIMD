@@ -1,8 +1,72 @@
+import sys
+
 import matplotlib.pyplot as plt
 import asyncio
 import numpy as np
 import pylab
+from sys import argv
 
+
+if(sys.argv[1] == 'graph1'):
+    data = []
+    x = []
+    print('ITS PYTHON')
+    it = 0
+    for i in range(2, len(sys.argv) - 1):
+        data.append(float(sys.argv[i]))
+        x.append(it)
+        it = it + 0.1
+
+    plt.plot(x, data)
+    plt.grid()
+    plt.show()
+elif(sys.argv[1] == 'graph2'):
+    data = []
+    x = []
+    print('ITS PYTHON')
+    it = 0
+    for i in range(2, len(sys.argv) - 1):
+        data.append(float(sys.argv[i]))
+        x.append(it)
+        it = it + 0.1
+
+    plt.plot(x, data)
+    plt.grid()
+    plt.show()
+elif (sys.argv[1] == 'graph3'):
+    data1 = []
+    data2 = []
+    x = []
+    print('ITS PYTHON')
+    it = 0
+    for i in range(2, int(len(sys.argv)/2)):
+        data1.append(float(sys.argv[i]))
+        x.append(it)
+        it = it + 0.1
+    for i in range(int(len(sys.argv)/2 + 1), len(sys.argv) - 1):
+        data2.append(float(sys.argv[i]))
+    plt.plot(x, data1)
+    plt.plot(x, data2)
+    plt.grid()
+    plt.show()
+elif (sys.argv[1] == 'graph4'):
+    data1 = []
+    data2 = []
+    x = []
+    print('ITS PYTHON')
+    it = 2 * (128/1000)
+    for i in range(2, int(len(sys.argv)/2)):
+        data1.append(float(sys.argv[i]))
+        x.append(it)
+        it = it + (128/1000)
+    for i in range(int(len(sys.argv)/2 + 1), len(sys.argv) - 1):
+        data2.append(float(sys.argv[i]))
+    plt.plot(x, data1)
+    plt.plot(x, data2)
+    plt.grid()
+    plt.show()
+
+'''
 a = 128
 data = []
 data_stat = []
@@ -46,6 +110,7 @@ for i in range(0, 18):
     y2.insert(i, y3)
     y3 = []
 '''
+'''
 plt.plot(x, y1)
 plt.grid()
 #plt.figure(1)
@@ -63,6 +128,7 @@ for i in range(0, 2, 18):
     ax.set_xlabel('Time')
     ax.set_ylabel('Amplitude')
     plt.show()
+'''
 '''
 pylab.subplot (2, 2, 1)
 pylab.plot(x, y1)
@@ -127,3 +193,4 @@ pylab.plot(x_stat, y_stat_simd)
 pylab.ylabel('time, mks')
 pylab.xlabel('len_filter)')
 pylab.show()
+'''
