@@ -8,16 +8,14 @@ using namespace std;
 
 
 int main(){
-    string py_path = "C:\\Users\\letby\\OneDrive\\Work\\Projects\\GraphFIR\\venv\\Scripts\\python.exe";
-    string FirFilter_path = "C:\\Users\\letby\\source\\repos\\FirFilterNewEdit\\FirFilterNewEdit\\GraphForFIR.py";
+    string py_path = "python";
+    string FirFilter_path = "C:\\Users\\Пользователь\\source\\repos\\RpojectOOOSTC1\\OOOSTC_ProblemsForApprentice\\GraphForFIR.py";
     FirFilter test1 = FirFilter("graph1.txt", "stat_out.txt");
-    //test1.start_second_test("graph1.txt", "stat_out.txt");
-    test1.MakeNoise(500.0, 20.0, 0); 
-    //test1.OutXinGraph(py_path, FirFilter_path);
-    test1.FIR_Filter(1024, 200, 158.1);
-    //test1.OutYinGraph(py_path, FirFilter_path);
-    //test1.OutXYinGraph(py_path, FirFilter_path);
-    test1.OutFrequencyResponseGraph(py_path, FirFilter_path);
+    test1.UploadWavSignal(py_path, FirFilter_path);
+    test1.OutXinGraph(py_path, FirFilter_path, "C:\\Users\\Пользователь\\source\\repos\\RpojectOOOSTC1\\RpojectOOOSTC1\\graphX.txt");
+    test1.FIR_Filter(1024, 9000, 7966);
+    test1.OutFrequencyResponseGraph(py_path, FirFilter_path, "C:\\Users\\Пользователь\\source\\repos\\RpojectOOOSTC1\\RpojectOOOSTC1\\graphXYFR.txt");
+    test1.ExportWavSignalY(py_path, FirFilter_path, "C:\\Users\\Пользователь\\source\\repos\\RpojectOOOSTC1\\RpojectOOOSTC1\\file_write");
     system("PAUSE");
     return 0;
 }

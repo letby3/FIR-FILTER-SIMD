@@ -105,6 +105,7 @@ public:
     
     ofstream stat_out;
     ofstream out;
+    ifstream in_read_wav;
     dataset main_config;
 
     FirFilter(string fileName, string stat_fileName) {
@@ -123,6 +124,46 @@ public:
         main_config.y = y;
     }
 
+    void UploadWavSignal(string py_path, string file_name) {
+        string python_x_param = py_path + " " + file_name + " " + "readWav";
+        char* python_x_param_char;
+        python_x_param_char = new char[python_x_param.size()];
+        for (int i = 0; i < python_x_param.size(); i++) {
+            python_x_param_char[i] = python_x_param[i];
+        }
+        system(python_x_param_char);
+        delete python_x_param_char;
+        in_read_wav.open("C:\\Users\\Пользователь\\source\\repos\\RpojectOOOSTC1\\RpojectOOOSTC1\\file_read.txt");
+        in_read_wav >> main_config.fs;
+        in_read_wav >> main_config.N;     
+        main_config.X_MAX = main_config.N / main_config.fs;
+        main_config.x = new float[main_config.N];
+        main_config.y = new float[main_config.N];
+        main_config.x_reverse = new float[main_config.N];
+        for (int i = 0; i < main_config.N; i++)
+            in_read_wav >> main_config.x[i];
+    }
+
+    void ExportWavSignalY(string py_path, string GraphForFIR_path, string file_name) {
+        string python_x_param = py_path + " " + GraphForFIR_path + " writeWav " + file_name;
+        char* python_x_param_char;
+        out.close();
+        out.open(file_name + ".txt");
+        vector<int> wav_write_int16;
+        float max_wav_y = 0;
+        for (int i = 0; i < main_config.N; i++)
+            max_wav_y = max(main_config.y[i], max_wav_y);
+        for (int i = 0; i < main_config.N; i++)
+            out << (int)main_config.y[i] << endl; //((int)((main_config.y[i] / max_wav_y) * 32767.0))
+
+        python_x_param_char = new char[python_x_param.size()];
+        for (int i = 0; i < python_x_param.size(); i++) {
+            python_x_param_char[i] = python_x_param[i];
+        }
+        system(python_x_param_char);
+        delete python_x_param_char;
+    }
+
     void MakeNoise(float amp_min, float amp_max, int sin_on_off) {
         float* X_MAX = &main_config.X_MAX;
         float* fs = &main_config.fs;
@@ -131,23 +172,27 @@ public:
         for (float i = 0; i <= *X_MAX; i += 1.0 / *fs, it++, it1--) {
             //float X = ((float)(abs(rand() % 12)) / amp_min - amp_max) * cos(2 * M_PI * 0.5 * i); // Rand-ый sin-ый входной сигнал
             float X = (((float)rand() / (float)RAND_MAX) * (amp_max - amp_min) + amp_min) * cos(2 * M_PI * 0.5 * i * sin_on_off);
+            cout << X << endl;
             main_config.x[it] = X;
             main_config.x_reverse[it1] = X;         
         }
     }
     
-    void OutXinGraph(string py_path, string GraphForFIR_path) {
-        string python_x_param = py_path + " " + GraphForFIR_path + " graph1";
+    void OutXinGraph(string py_path, string GraphForFIR_path, string file_out) {
+        string python_x_param = py_path + " " + GraphForFIR_path + " graph1 " + file_out;
         char *python_x_param_char;
+        out.close();
+        out.open(file_out);        
         for (int i = 0; i < main_config.N; i++) {
-            python_x_param = python_x_param + " " + to_string(main_config.x[i]);
-        }
+            out << main_config.x[i] << endl;
+        }        
         python_x_param_char = new char[python_x_param.size()];
         for (int i = 0; i < python_x_param.size(); i++) {
-            python_x_param_char[i] = python_x_param[i];
-        }
+            python_x_param_char[i] = '\0';
+            python_x_param_char[i] = python_x_param[i];                
+        }                
         system(python_x_param_char);
-        delete python_x_param_char;
+        delete python_x_param_char;        
     }
 
     void OutYinGraph(string py_path, string GraphForFIR_path) {
@@ -184,10 +229,10 @@ public:
     
 
     void FFT(vector<base>& a, bool invert) {       
-        int n = (int)a.size();
+        long long n = (int)a.size();
 
-        for (int i = 1, j = 0; i < n; ++i) {
-            int bit = n >> 1;
+        for (long long i = 1, j = 0; i < n; ++i) {
+            long long bit = n >> 1;
             for (; j >= bit; bit >>= 1)
                 j -= bit;
             j += bit;
@@ -213,22 +258,32 @@ public:
                 a[i] /= n;
     }
 
-    void OutFrequencyResponseGraph(string py_path, string GraphForFIR_path) {
-        string python_frr_param = py_path + " " + GraphForFIR_path + " graph4";
+    void OutFrequencyResponseGraph(string py_path, string GraphForFIR_path, string file_out) {
+        string python_frr_param = py_path + " " + GraphForFIR_path + " graph4 " + file_out + " ";
         char* python_frr_param_char;
         vector<base> x, y;
-        for (int i = 0; i < main_config.N;i++) {
+        out.close();
+        out.open(file_out);
+        int new_n = 1;
+        while (1) {
+            if (new_n * 2 > main_config.N)
+                break;
+            new_n *= 2;
+        }        
+        
+        for (int i = 0; i < new_n;i++) {
             x.push_back(main_config.x[i]);
             y.push_back(main_config.y[i]);
         }
         FFT(x, 0);
-        FFT(y, 0);
+        FFT(y, 0);        
         for (int i = 2; i < x.size(); i++) {            
-            python_frr_param = python_frr_param + " " +  to_string(sqrt(x[i].real() * x[i].real() + x[i].imag() * x[i].imag()));
+            out << (sqrt(x[i].real() * x[i].real() + x[i].imag() * x[i].imag())) << endl;
         }
-        for (int i = 2; i < x.size(); i++) {
-            python_frr_param = python_frr_param + " " + to_string(sqrt(y[i].real() * y[i].real() + y[i].imag() * y[i].imag()));
+        for (int i = 2; i < y.size(); i++) {
+            out << (sqrt(y[i].real() * y[i].real() + y[i].imag() * y[i].imag())) << endl;
         }        
+        python_frr_param += to_string(x.size() + y.size());
         python_frr_param_char = new char[python_frr_param.size()];
         for (int i = 0; i < python_frr_param.size(); i++) {
             python_frr_param_char[i] = python_frr_param[i];
