@@ -1,6 +1,6 @@
 # FIR Filter SIMD
 
-Написать реализацию КИХ фильтра, оптимизированную с использованием 
+Реализация КИХ фильтра, оптимизированный с использованием 
 расширений SIMD процессора x86_64
 
 Решение:
@@ -27,6 +27,11 @@ Compiler: MK VS C++ 14, Python 3.10.8
 ![Figure_4](https://user-images.githubusercontent.com/22713938/204394456-f5be31e6-f135-4118-8317-59fd14b076c1.png)
 
   1.3 Графики синий-FIR_Filter, оранжевый-FIR_Filter_SIMD
+
+![image](https://user-images.githubusercontent.com/22713938/210329673-7075d576-b4df-43f0-a7ed-9bac46b30734.png)
+
+  1.4 АЧХ входного и выходного сигналов
+
 
 Литература: 
 1. https://habr.com/ru/post/460445/
