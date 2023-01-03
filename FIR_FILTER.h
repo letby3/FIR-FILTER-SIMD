@@ -108,12 +108,10 @@ public:
     ifstream in_read_wav;
     dataset main_config;
 
-    FirFilter(string fileName, string stat_fileName) {
+    FirFilter() {
         main_config.x = new float[main_config.N];
         main_config.y = new float[main_config.N];
         main_config.x_reverse = new float[main_config.N];
-        out.open(fileName);
-        stat_out.open(stat_fileName);
     }
 
     FirFilter(float N, float fs, float X_MAX, float* x, float* y) {
@@ -125,7 +123,7 @@ public:
     }
 
     void UploadWavSignal(string py_path, string file_name) {
-        string python_x_param = py_path + " " + file_name + " " + "readWav";
+        string python_x_param = py_path + " " + file_name + " " + "readWav ";
         char* python_x_param_char;
         python_x_param_char = new char[python_x_param.size()];
         for (int i = 0; i < python_x_param.size(); i++) {
@@ -156,6 +154,7 @@ public:
         for (int i = 0; i < main_config.N; i++)
             out << (int)main_config.y[i] << endl; //((int)((main_config.y[i] / max_wav_y) * 32767.0))
 
+        python_x_param += " ";
         python_x_param_char = new char[python_x_param.size()];
         for (int i = 0; i < python_x_param.size(); i++) {
             python_x_param_char[i] = python_x_param[i];
@@ -179,7 +178,7 @@ public:
     }
     
     void OutXinGraph(string py_path, string GraphForFIR_path, string file_out) {
-        string python_x_param = py_path + " " + GraphForFIR_path + " graph1 " + file_out;
+        string python_x_param = py_path + " " + GraphForFIR_path + " graph1 " + file_out + " ";
         char *python_x_param_char;
         out.close();
         out.open(file_out);        
@@ -195,11 +194,13 @@ public:
         delete python_x_param_char;        
     }
 
-    void OutYinGraph(string py_path, string GraphForFIR_path) {
-        string python_y_param = py_path + " " + GraphForFIR_path + " graph2";
+    void OutYinGraph(string py_path, string GraphForFIR_path, string file_out) {
+        string python_y_param = py_path + " " + GraphForFIR_path + " graph2 " + file_out + " ";
         char* python_y_param_char;
+        out.close();
+        out.open(file_out);
         for (int i = 0; i < main_config.N; i++) {
-            python_y_param = python_y_param + " " + to_string(main_config.y[i]);            
+            out << (main_config.y[i]) << endl;
         }
         python_y_param_char = new char[python_y_param.size()];
         for (int i = 0; i < python_y_param.size(); i++) {
@@ -209,14 +210,16 @@ public:
         delete python_y_param_char;
     }
 
-    void OutXYinGraph(string py_path, string GraphForFIR_path) {
-        string python_xy_param = py_path + " " + GraphForFIR_path + " graph3";
+    void OutXYinGraph(string py_path, string GraphForFIR_path, string file_out) {
+        string python_xy_param = py_path + " " + GraphForFIR_path + " graph3 " + file_out + " ";
         char* python_xy_param_char;
+        out.close();
+        out.open(file_out);          
         for (int i = 0; i < main_config.N; i++) {
-            python_xy_param = python_xy_param + " " + to_string(main_config.x[i]);
+            out << main_config.x[i] << endl;
         }
         for (int i = 0; i < main_config.N; i++) {
-            python_xy_param = python_xy_param + " " + to_string(main_config.y[i]);
+            out << main_config.y[i] << endl;
         }
         python_xy_param_char = new char[python_xy_param.size()];
         
@@ -283,7 +286,7 @@ public:
         for (int i = 2; i < y.size(); i++) {
             out << (sqrt(y[i].real() * y[i].real() + y[i].imag() * y[i].imag())) << endl;
         }        
-        python_frr_param += to_string(x.size() + y.size());
+        python_frr_param += to_string(x.size() + y.size()) + " ";
         python_frr_param_char = new char[python_frr_param.size()];
         for (int i = 0; i < python_frr_param.size(); i++) {
             python_frr_param_char[i] = python_frr_param[i];

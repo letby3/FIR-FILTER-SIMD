@@ -9,11 +9,13 @@ from sys import argv
 import wave as wv
 import scipy.io.wavfile as wv1
 
+print(sys.argv[1])
+
 if(sys.argv[1] == 'graph1'):
     data = []
     x = []
     print('ITS PYTHON')
-    file_name = sys.argv[2][:len(sys.argv[2]) - 7]
+    file_name = sys.argv[2]
     print(file_name)
     f = open(file_name, 'r')
     it = 0
@@ -29,27 +31,35 @@ elif(sys.argv[1] == 'graph2'):
     data = []
     x = []
     print('ITS PYTHON')
+    file_name = sys.argv[2]
+    print(file_name)
+    f = open(file_name, 'r')
     it = 0
-    for i in range(2, len(sys.argv) - 1):
-        data.append(float(sys.argv[i]))
+    for i in f:
+        data.append(float(i))
         x.append(it)
-        it = it + 0.1
+        it = it + (1.0/44100)
 
     plt.plot(x, data)
     plt.grid()
     plt.show()
 elif (sys.argv[1] == 'graph3'):
+    data = []
     data1 = []
     data2 = []
     x = []
     print('ITS PYTHON')
-    it = 0
-    for i in range(2, int(len(sys.argv)/2)):
-        data1.append(float(sys.argv[i]))
+    file_name = sys.argv[2]
+    print(file_name)
+    f = open(file_name, 'r')
+    it = 0.0
+    for i in f:
+        data.append(float(i))
         x.append(it)
-        it = it + 0.1
-    for i in range(int(len(sys.argv)/2 + 1), len(sys.argv) - 1):
-        data2.append(float(sys.argv[i]))
+        it = it + (1.0/44100.0)
+    data1 = data[:int(len(data)/2)]
+    data2 = data[int(len(data)/2):]
+    x = x[:int(len(data)/2)]
     plt.plot(x, data1)
     plt.plot(x, data2)
     plt.grid()
@@ -61,9 +71,8 @@ elif (sys.argv[1] == 'graph4'):
     x2 = []
     print('ITS PYTHON')
     file_name = sys.argv[2]
-    lenData = int(sys.argv[3][:len(sys.argv[3]) - 13]) - 4
+    lenData = int(sys.argv[3]) - 4
     print(file_name)
-    print(lenData)
     f = open(file_name)
     it = 0
     it1 = 0
@@ -84,9 +93,7 @@ elif (sys.argv[1] == 'graph4'):
     plt.show()
 elif(sys.argv[1] == 'readWav'):
     file_wave = wv.open('C:\\Users\\Пользователь\\source\\repos\\RpojectOOOSTC1\\RpojectOOOSTC1\\file_read.wav', 'rb')
-    print(file_wave.getframerate())
-    print(file_wave.getnframes())
-    print(file_wave.getnchannels())
+    print("file has been uploading")
     mass_signal = list(file_wave.readframes(file_wave.getnframes()))
     max_mass_signal = max(mass_signal)
 
@@ -105,7 +112,7 @@ elif(sys.argv[1] == 'readWav'):
 
 elif(sys.argv[1] == 'writeWav'):
     data = []
-    file_name = str(sys.argv[2][:len(sys.argv[2]) - 21])
+    file_name = str(sys.argv[2])
     print(file_name + '.txt')
     with open(file_name + '.txt', 'r') as f:
         for line in f:
